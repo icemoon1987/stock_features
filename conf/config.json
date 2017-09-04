@@ -3,8 +3,8 @@
 	"data_dir": "./data",
 	"result_dir": "./result",
 
-	"clear_data_every_time": true,
-	"clear_result_every_time": true,
+	"clear_data_every_time": false,
+	"clear_result_every_time": false,
 	"debug_mode": true,
 
 	"data_days": 365,
