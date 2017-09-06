@@ -40,9 +40,10 @@ class TushareInterface(object):
     def get_day_kline(self, stock_id, start_date, end_date):
 
         start_date = start_date.strftime("%Y-%m-%d")
-        end_date = end_date.strftime("%Y-%m-%d")
+        end_date = (end_date).strftime("%Y-%m-%d")
 
-        return ts.get_k_data(stock_id, ktype="D", start=start_date, end=end_date)
+        #return ts.get_k_data(stock_id, ktype="D", start=start_date, end=end_date)
+        return ts.get_k_data(stock_id, ktype="D")
 
 
     def get_week_kline(self, stock_id, start_date, end_date):
@@ -50,5 +51,8 @@ class TushareInterface(object):
         start_date = start_date.strftime("%Y-%m-%d")
         end_date = end_date.strftime("%Y-%m-%d")
 
-        return ts.get_k_data(stock_id, ktype="W", start=start_date, end=end_date)
+        #return ts.get_k_data(stock_id, ktype="W", start=start_date, end=end_date)
+        return ts.get_k_data(stock_id, ktype="W")
+
+
 

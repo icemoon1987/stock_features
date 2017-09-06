@@ -31,9 +31,11 @@ import pandas as pd
 from datetime import datetime, timedelta
 from processor.feature_extractor import FeatureExtractor
 from processor.signal_generator import SignalGenerator
+from model.three_screen import ThreeScreen
 import matplotlib.pyplot as plt
 
 pd.set_option("display.width", 300)
+pd.set_option("display.max_rows", None)
 
 def init(conf_file):
     """
@@ -74,7 +76,7 @@ def init(conf_file):
     else:
         log_level = logging.INFO
 
-    logging.basicConfig(level=log_level, filename="%s/%s.%s" % (log_dir, __file__, datetime.now().strftime("%Y%m%d")), filemode='a', format='%(asctime)s [%(levelname)s] [%(filename)s] [%(funcName)s] [%(lineno)d] %(message)s')
+    logging.basicConfig(level=log_level, filename="%s/%s.%s" % (log_dir, "log", datetime.now().strftime("%Y%m%d")), filemode='a', format='%(asctime)s [%(levelname)s] [%(filename)s] [%(funcName)s] [%(lineno)d] %(message)s')
 
     return conf_obj
 
@@ -84,17 +86,24 @@ def print_help():
     return
 
 
-def load_kline_data(data_dir):
+def load_kline_data(data_dir, prefix):
 
     result = pd.DataFrame()
 
     kline_map = {}
 
-    for file_name in os.listdir(data_dir)[500:501]:
+    for file_name in os.listdir(data_dir):
 
         stock_id = file_name
 
         tmp = pd.read_csv(data_dir + "/" + file_name, parse_dates=["date"])
+
+        rename_map = {}
+
+        for column in tmp.columns:
+            rename_map[column] = prefix + "_" + column
+
+        tmp.rename(columns=rename_map, inplace=True)
 
         kline_map[stock_id] = tmp
 
@@ -104,9 +113,9 @@ def load_kline_data(data_dir):
 def main():
 
     if len(sys.argv) >= 2:
-        date = datetime.strptime(sys.argv[2], "%Y%m%d")
+        date = datetime.strptime(sys.argv[1], "%Y%m%d")
     else:
-        date = datetime.now()
+        date = datetime.strptime(datetime.now().strftime("%Y%m%d"), "%Y%m%d")
 
     conf_file = "./conf/config.json"
 
@@ -117,61 +126,128 @@ def main():
     day_kline_path = "%s/kline/day/%s" % (conf_obj["data_dir"], date.strftime("%Y%m%d"))
     week_kline_path = "%s/kline/week/%s" % (conf_obj["data_dir"], date.strftime("%Y%m%d"))
 
-    day_kline = load_kline_data(day_kline_path)
+    day_kline = load_kline_data(day_kline_path, "day")
     logging.info("init day kline finish")
 
-    week_kline = load_kline_data(week_kline_path)
+    week_kline = load_kline_data(week_kline_path, "week")
     logging.info("init week kline finish")
 
     fe = FeatureExtractor()
     sg = SignalGenerator()
+    m = ThreeScreen()
 
     # calculate features for day kline
     i = 0
     for stock_id in day_kline:
         i += 1
-        if i % 100 == 0:
+        if i % 100 == 0 or i == len(day_kline):
             logging.info("analysing day k line (%d/%d)" % (i, len(day_kline)))
 
         # add MA
         #day_kline[stock_id] = fe.ma(day_kline[stock_id], "close", "close_ma_11", 11)
 
         # add EMA
-        day_kline[stock_id] = fe.ema(day_kline[stock_id], "close", "close_ema_11", 11)
-        day_kline[stock_id] = fe.ema(day_kline[stock_id], "close", "close_ema_22", 22)
+        day_kline[stock_id] = fe.ema(day_kline[stock_id], "day_close", "day_close_ema_short", 11)
+        day_kline[stock_id] = fe.ema(day_kline[stock_id], "day_close", "day_close_ema_long", 22)
 
         # add MACD
         #day_kline[stock_id] = fe.macd(day_kline[stock_id], "close", "macd", "macd_signal", "macd_bar", 12, 26, 9)
 
-        # add pulse
+        # add Pulse
         #day_kline[stock_id] = fe.pulse(day_kline[stock_id], "close_ema_11", "macd_bar", "pulse")
 
-        # add force
-        day_kline[stock_id] = fe.force_index(day_kline[stock_id], "close", "volume", "force_raw", "force_ema", 2)
+        # add Force
+        day_kline[stock_id] = fe.force_index(day_kline[stock_id], "day_close", "day_volume", "day_force_raw", "day_force_ema", 2)
 
-        # add force signal
-        day_kline[stock_id] = sg.force_signal(day_kline[stock_id], "force_ema", 20, "force_signal")
+        # add Force signal
+        day_kline[stock_id] = sg.force_signal(day_kline[stock_id], "day_force_ema", 20, "day_force_signal")
 
     i = 0
     for stock_id in week_kline:
         i += 1
-        if i % 100 == 0:
+        if i % 100 == 0 or i == len(week_kline):
             logging.info("analysing week k line (%d/%d)" % (i, len(week_kline)))
 
         # add EMA
-        week_kline[stock_id] = fe.ema(week_kline[stock_id], "close", "close_ema_13", 13)
+        week_kline[stock_id] = fe.ema(week_kline[stock_id], "week_close", "week_close_ema_short", 13)
+        week_kline[stock_id] = fe.ema(week_kline[stock_id], "week_close", "week_close_ema_long", 26)
 
         # add MACD
-        week_kline[stock_id] = fe.macd(week_kline[stock_id], "close", "macd", "macd_signal", "macd_bar", 12, 26, 9)
+        week_kline[stock_id] = fe.macd(week_kline[stock_id], "week_close", "week_macd", "week_macd_signal", "week_macd_bar", 12, 26, 9)
 
-        # add pulse
-        week_kline[stock_id] = fe.pulse(week_kline[stock_id], "close_ema_13", "macd_bar", "pulse")
+        # add Pulse
+        week_kline[stock_id] = fe.pulse(week_kline[stock_id], "week_close_ema_short", "week_macd_bar", "week_pulse")
 
-        # add pulse signal
-        week_kline[stock_id] = sg.pulse_signal(week_kline[stock_id], "pulse", "pulse_signal")
+        # add Pulse signal
+        week_kline[stock_id] = sg.pulse_signal(week_kline[stock_id], "week_pulse", "week_pulse_signal")
 
-    print day_kline
-    print week_kline
+    #print day_kline
+    #print week_kline
+
+    single_result = {}
+
+    single_result_path = "%s/single_result/%s" % (conf_obj["result_dir"], date.strftime("%Y%m%d"))
+
+    if not os.path.exists(single_result_path):
+        logging.info("%s does not exist." % (single_result_path))
+        os.makedirs(single_result_path)
+
+    i = 0
+    for stock_id in day_kline:
+        i += 1
+        if i % 100 == 0 or i == len(day_kline):
+            logging.info("modeling (%d/%d)" % (i, len(day_kline)))
+
+        try:
+
+            if day_kline[stock_id].shape[0] == 0 or week_kline[stock_id].shape[0] == 0:
+                continue
+            else:
+                single_result[stock_id] = m.signal(day_kline[stock_id], week_kline[stock_id])
+
+        except Exception, ex:
+            print week_kline[stock_id]
+            print stock_id
+
+        single_result[stock_id].to_csv("%s/%s" % (single_result_path, stock_id), index=False)
+
+
+    merge_result = None
+    
+    for stock_id in single_result:
+        tmp = single_result[stock_id].where(single_result[stock_id]["day_date"] == date).dropna()
+        tmp["stock_id"] = stock_id
+
+        if tmp.shape[0] > 0:
+            if merge_result is None:
+                merge_result = tmp
+            else:
+                merge_result = pd.concat([merge_result, tmp])
+
+
+    merge_result_path = "%s/merge_result" % (conf_obj["result_dir"])
+
+    if not os.path.exists(merge_result_path):
+        logging.info("%s does not exist." % (merge_result_path))
+        os.makedirs(merge_result_path)
+
+    merge_result.to_csv("%s/%s" % (merge_result_path, date.strftime("%Y%m%d")), index=False)
+
+    #print merge_result
+
+    # Filter
+
+    filter_result = merge_result.where(merge_result["model_signal"] > 0).where(merge_result["stop_point"] < merge_result["stop_point_threshold"]).where(merge_result["profit_risk_ratio"] > 1.0).dropna()
+
+    filter_result = filter_result.sort_values(by = ["model_signal", "profit_risk_ratio"])
+
+    filter_result_path = "%s/filter_result" % (conf_obj["result_dir"])
+
+    if not os.path.exists(filter_result_path):
+        logging.info("%s does not exist." % (filter_result_path))
+        os.makedirs(filter_result_path)
+
+    filter_result.to_csv("%s/%s" % (filter_result_path, date.strftime("%Y%m%d")), index=False)
 
     return
 

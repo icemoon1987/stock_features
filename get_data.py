@@ -65,7 +65,7 @@ def init(conf_file):
     else:
         log_level = logging.INFO
 
-    logging.basicConfig(level=log_level, filename="%s/%s.%s" % (log_dir, __file__, datetime.now().strftime("%Y%m%d")), filemode='a', format='%(asctime)s [%(levelname)s] [%(filename)s] [%(funcName)s] [%(lineno)d] %(message)s')
+    logging.basicConfig(level=log_level, filename="%s/%s.%s" % (log_dir, "log", datetime.now().strftime("%Y%m%d")), filemode='a', format='%(asctime)s [%(levelname)s] [%(filename)s] [%(funcName)s] [%(lineno)d] %(message)s')
 
     return conf_obj
 
@@ -89,8 +89,11 @@ def get_stock_ids(data_if):
 
 def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, end_date):
 
+    i = 0
     for stock_id in stock_list:
-        logging.debug("get %s kline for %s, from %s to %s" % (kline_type, stock_id, start_date.strftime("%Y%m%d"), end_date.strftime("%Y%m%d")))
+        i += 1
+        if i % 10 == 0 or i == len(stock_list):
+            logging.info("get %s k line (%d/%d)" % (kline_type, i, len(stock_list)))
 
         if kline_type == "day":
             kline = data_if.get_day_kline(stock_id, start_date, end_date)
@@ -102,29 +105,6 @@ def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, e
         kline.to_csv("%s/%s" % (data_dir, stock_id), index=False)
 
     return
-
-
-def load_data(data_dir):
-
-    result = pd.DataFrame()
-
-    day_kline_map = {}
-    week_kline_map = {}
-
-    for file_name in os.listdir(data_dir):
-
-        stock_id, data_type = file_name.split(".")
-
-        tmp = pd.read_csv(data_dir + "/" + file_name, parse_dates=["date"])
-        print tmp
-
-        if data_type == "day":
-            day_kline_map[stock_id] = tmp
-
-        if data_type == "week":
-            week_kline_map[stock_id] = tmp
-
-    return day_kline_map, week_kline_map
 
 
 def main():
@@ -149,6 +129,9 @@ def main():
 
     # Filter ST stocks
     all_stock = all_stock.where(~all_stock["name"].str.contains("ST")).dropna()
+
+    # test
+    #all_stock = all_stock[500:520]
 
     stock_set = set(all_stock.index)
     logging.info("get %d stock ids" % (len(stock_set)))

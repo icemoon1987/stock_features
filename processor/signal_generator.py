@@ -44,17 +44,21 @@ class SignalGenerator(object):
                 result_list.append(0)
                 continue
 
-            # switch
-            if pulse_list[i] == "g":
-                if pulse_list[i-1] == "r" or pulse_list[i-1] == "b":
-                    result_list.append(2)
+            if pulse_list[i-1] == "g":
+
+                if pulse_list[i] == "r":
+                    result_list.append(-3)
+                elif pulse_list[i] == "b":
+                    result_list.append(-2)
                 else:
                     result_list.append(1)
 
-            # hold
-            elif pulse_list[i] == "r":
-                if pulse_list[i-1] == "g" or pulse_list[i-1] == "b":
-                    result_list.append(-2)
+            elif pulse_list[i-1] == "r":
+
+                if pulse_list[i] == "g":
+                    result_list.append(3)
+                elif pulse_list[i] == "b":
+                    result_list.append(2)
                 else:
                     result_list.append(-1)
 
@@ -81,13 +85,13 @@ class SignalGenerator(object):
         for i in range(len(force_list)):
             if force_list[i] > 0:
                 if force_list[i] < force_max_list[i]:
-                    result_list.append(1)
+                    result_list.append(-1)
                 else:
                     result_list.append(0)
 
             elif force_list[i] < 0:
                 if force_list[i] > force_min_list[i]:
-                    result_list.append(-1)
+                    result_list.append(1)
                 else:
                     result_list.append(0)
 
