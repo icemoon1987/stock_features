@@ -98,7 +98,9 @@ def get_and_store_data(data_if, data_dir, start_date, end_date):
     stock_list = get_stock_ids(data_if)
     logging.info("get %d stock ids." % (len(stock_list)))
 
-    for stock_id in stock_list[500:503]:
+    i = 0
+    for stock_id in stock_list:
+    	i += 1
         day_kline = data_if.get_day_kline(stock_id, start_date, end_date)
         week_kline = data_if.get_week_kline(stock_id, start_date, end_date)
 
@@ -107,6 +109,7 @@ def get_and_store_data(data_if, data_dir, start_date, end_date):
 
         day_kline.to_csv("%s/%s.day" % (data_dir, stock_id), index=False)
         week_kline.to_csv("%s/%s.week" % (data_dir, stock_id), index=False)
+    	logging.info("get %d stock data, %d to go." % (i, len(stock_list) - i))
 
     logging.info("get %d stock day k line and week k line." % (len(stock_list)))
 
@@ -125,7 +128,6 @@ def load_data(data_dir):
         stock_id, data_type = file_name.split(".")
 
         tmp = pd.read_csv(data_dir + "/" + file_name, parse_dates=["date"])
-        print tmp
 
         if data_type == "day":
             day_kline_map[stock_id] = tmp
@@ -161,9 +163,6 @@ def main():
     # Load data
     day_kline_map, week_kline_map = load_data(conf_obj["data_dir"])
     logging.info("load stock data.")
-
-    print day_kline_map
-    print week_kline_map
 
     return
 

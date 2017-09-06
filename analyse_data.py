@@ -214,7 +214,12 @@ def main():
 
     merge_result = None
     
+    i = 0
     for stock_id in single_result:
+    	i += 1
+        if i % 100 == 0 or i == len(single_result):
+            logging.info("merging (%d/%d)" % (i, len(single_result)))
+
         tmp = single_result[stock_id].where(single_result[stock_id]["day_date"] == date).dropna()
         tmp["stock_id"] = stock_id
 
