@@ -31,6 +31,9 @@ import pandas as pd
 from datetime import datetime, timedelta
 from data_interface.tushare_interface import TushareInterface
 
+pd.set_option("display.width", 300)
+#pd.set_option("display.max_rows", None)
+
 
 def init(conf_file):
     """
@@ -75,18 +78,6 @@ def print_help():
     return
 
 
-def get_stock_ids(data_if):
-
-    # Get all stocks
-    all_stock = data_if.get_all_stocks()
-
-    # Filter ST stocks
-    all_stock = all_stock.where(~all_stock["name"].str.contains("ST")).dropna()
-
-    return list(all_stock.index)
-
-
-
 def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, end_date):
 
     i = 0
@@ -102,7 +93,8 @@ def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, e
 
         kline = kline.ix[:, ["date", "open", "close", "high", "low", "volume"]]
 
-        kline.to_csv("%s/%s" % (data_dir, stock_id), index=False)
+        if kline.shape[0] > 0:
+            kline.to_csv("%s/%s" % (data_dir, stock_id), index=False)
 
     return
 
@@ -120,7 +112,6 @@ def main():
     conf_obj = init(conf_file)
     logging.info("init finish")
 
-
     data_if = TushareInterface()
     #get_and_store_data(data_if, conf_obj["data_dir"], start_date, end_date)
 
@@ -129,6 +120,11 @@ def main():
 
     # Filter ST stocks
     all_stock = all_stock.where(~all_stock["name"].str.contains("ST")).dropna()
+
+    # Filter too new stocks
+    up_date_limit = (end_date - timedelta(days = 90)).strftime("%Y%m%d")
+    all_stock = all_stock.where(all_stock["timeToMarket"] < float(up_date_limit)).dropna()
+    all_stock = all_stock.where(all_stock["timeToMarket"] != 0.0).dropna()
 
     # test
     #all_stock = all_stock[500:520]

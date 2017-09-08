@@ -212,7 +212,7 @@ def main():
         single_result[stock_id].to_csv("%s/%s" % (single_result_path, stock_id), index=False)
 
 
-    merge_result = None
+    merge_result_list = []
     
     i = 0
     for stock_id in single_result:
@@ -224,11 +224,9 @@ def main():
         tmp["stock_id"] = stock_id
 
         if tmp.shape[0] > 0:
-            if merge_result is None:
-                merge_result = tmp
-            else:
-                merge_result = pd.concat([merge_result, tmp])
+            merge_result_list.append(tmp)
 
+    merge_result = pd.concat(merge_result_list)
 
     merge_result_path = "%s/merge_result" % (conf_obj["result_dir"])
 
@@ -237,22 +235,6 @@ def main():
         os.makedirs(merge_result_path)
 
     merge_result.to_csv("%s/%s" % (merge_result_path, date.strftime("%Y%m%d")), index=False)
-
-    #print merge_result
-
-    # Filter
-
-    filter_result = merge_result.where(merge_result["model_signal"] > 0).where(merge_result["stop_point"] < merge_result["stop_point_threshold"]).where(merge_result["profit_risk_ratio"] > 1.0).dropna()
-
-    filter_result = filter_result.sort_values(by = ["model_signal", "profit_risk_ratio"])
-
-    filter_result_path = "%s/filter_result" % (conf_obj["result_dir"])
-
-    if not os.path.exists(filter_result_path):
-        logging.info("%s does not exist." % (filter_result_path))
-        os.makedirs(filter_result_path)
-
-    filter_result.to_csv("%s/%s" % (filter_result_path, date.strftime("%Y%m%d")), index=False)
 
     return
 

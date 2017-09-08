@@ -86,9 +86,9 @@ class ThreeScreen(object):
 
         day_df["stop_point_threshold"] = day_df["day_close"] + day_df["day_close_ema_gap_mean"]
 
-        day_df["day_close_ema_short_predict"] = 2 * day_df["day_close_ema_short"] - day_df.shift(1)["day_close_ema_short"]
+        day_df["day_close_ema_predict"] = 2 * day_df["day_close_ema_short"] - day_df.shift(1)["day_close_ema_short"]
 
-        day_df["enter_point"] = day_df["day_close_ema_short_predict"] + day_df["day_close_ema_gap_mean"]
+        day_df["enter_point"] = day_df["day_close_ema_predict"] + day_df["day_close_ema_gap_mean"]
 
         return day_df
 
@@ -171,7 +171,7 @@ class ThreeScreen(object):
         
         merge_result["model_signal"] = result
 
-        merge_result["profit"] = merge_result["target_point"] - merge_result["day_close"]
+        merge_result["profit"] = merge_result["target_point"] - merge_result["enter_point"]
         merge_result["risk"] = merge_result["day_close"] - merge_result["stop_point"]
         merge_result["profit_risk_ratio"] = merge_result["profit"] / merge_result["risk"]
 

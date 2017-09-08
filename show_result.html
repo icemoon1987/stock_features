@@ -1,0 +1,28 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head profile="http://gmpg.org/xfn/11">
+
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta http-equiv="Cache-Control" content="max-age=700">
+		<meta http-equiv="Expires" content="700">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+		<meta name="format-detection" content="telephone=no">
+
+		<script type="text/javascript" src="https://cdn.bootcss.com/echarts/3.7.1/echarts.js"></script>
+		<script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+		<script type="text/javascript" src="./data.js"></script>
+		<script type="text/javascript" src="./show_result.js"></script>
+
+		<title></title>
+
+	</head>
+	<body>
+
+		<div id="main" style="width: 1200px;height:600px;"></div>
+
+		<script type="text/javascript">
+			var myChart = echarts.init(document.getElementById('main'));
+			show(myChart);
+		</script>
+
+	</body>
+</html>
