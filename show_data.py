@@ -142,7 +142,7 @@ def main():
 
     print single_result.columns
 
-    print single_result.ix[:, ["day_date", "week_close_ema_short", "week_macd_bar", "week_pulse", "week_pulse_signal", "day_close", "day_force_ema", "day_force_signal", "model_signal", "stop_point_threshold", "stop_point", "enter_point", "target_point", "profit", "risk", "profit_risk_ratio"]]
+    print single_result.ix[:, ["day_date", "week_pulse_signal", "day_force_signal", "model_signal", "day_close", "stop_point_threshold", "stop_point", "enter_point", "target_point", "profit", "risk", "profit_risk_ratio"]]
 
     f = open("./data.js", "w")
 

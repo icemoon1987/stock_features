@@ -91,7 +91,7 @@ function renderItem(params, api) {
 function renderModelSignal(params, api) {
 
 	var pos = api.coord([api.value(0), api.value(1)]);
-	var force_signal = api.value(2);
+	var model_signal = api.value(2);
 
 	var style = api.style({
 		stroke: api.visual('color')
@@ -100,15 +100,15 @@ function renderModelSignal(params, api) {
 	var r = 0;
 	var invisible = false;
 
-	if(force_signal == 0){
+	if(model_signal > 0 && model_signal <= 2){
 		invisible = true;
 	}
-	else if(force_signal > 0){
+	else if(model_signal > 2){
 		style.stroke = "#000000";
 		style.fill = "#000000";
 		r = 3;
 	}
-	else if(force_signal < 0){
+	else if(model_signal < 0){
 		style.stroke = "#FF0000";
 		style.fill = "#FF0000";
 		r = 3;
@@ -122,6 +122,8 @@ function renderModelSignal(params, api) {
 			},
 			style: style
 	};
+
+	return;
 }
 
 
