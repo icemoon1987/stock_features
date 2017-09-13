@@ -46,19 +46,19 @@ class ThreeScreen(object):
 
     def enter_point(self, day_df, day_window):
 
-        close_price = list(day_df["day_close"])
-        close_ema = list(day_df["day_close_ema_short"])
+        low_price = list(day_df["day_low"])
+        close_ema = list(day_df["day_close_ema_long"])
         gap_result = []
 
-        for i in range(len(close_price)):
-            gap = close_price[i] - close_ema[i]
+        for i in range(len(low_price)):
+            gap = low_price[i] - close_ema[i]
 
             if gap >= 0:
                 gap_result.append(0)
             else:
                 gap_result.append(gap)
 
-        day_df["day_close_ema_gap"] = gap_result
+        day_df["day_low_ema_gap"] = gap_result
 
         mean_gap_result = []
 
@@ -82,13 +82,14 @@ class ThreeScreen(object):
             else:
                 mean_gap_result.append(0.0)
 
-        day_df["day_close_ema_gap_mean"] = mean_gap_result
+        day_df["day_low_ema_gap_mean"] = mean_gap_result
 
-        day_df["stop_point_threshold"] = day_df["day_close"] + day_df["day_close_ema_gap_mean"]
+        day_df["day_close_ema_predict"] = 2 * day_df["day_close_ema_long"] - day_df.shift(1)["day_close_ema_long"]
 
-        day_df["day_close_ema_predict"] = 2 * day_df["day_close_ema_short"] - day_df.shift(1)["day_close_ema_short"]
+        #day_df["stop_point_threshold"] = day_df["day_close_ema_long"] + day_df["day_low_ema_gap_mean"]
+        day_df["stop_point_threshold"] = day_df["day_close_ema_predict"] + day_df["day_low_ema_gap_mean"]
 
-        day_df["enter_point"] = day_df["day_close_ema_predict"] + day_df["day_close_ema_gap_mean"]
+        day_df["enter_point_predict"] = day_df["day_close_ema_predict"] + day_df["day_low_ema_gap_mean"]
 
         return day_df
 
@@ -114,26 +115,61 @@ class ThreeScreen(object):
                     min_num = close_price[j]
                     min_index = j
 
+            """
             if min_index == i:
                 result.append(close_price[min_index])
                 continue
+            """
 
-            before = min_index - 1
-            after = min_index + 1
-
-            if before < 0 and after > i:
-                result.append(close_price[min_index])
-            elif before < 0 and after <= i:
-                result.append(close_price[after])
-            elif before >= 0 and after > i:
-                result.append(close_price[before])
+            before_index = min_index - 1
+            if before_index < 0:
+                before_num = 9999
             else:
-                if close_price[before] < close_price[after]:
-                    result.append(close_price[before])
-                else:
-                    result.append(close_price[after])
+                before_num = close_price[before_index]
 
-        day_df["stop_point"] = result
+            after_index = min_index + 1
+            if after_index > i:
+                after_num = 9999
+            else:
+                after_num = close_price[after_index]
+
+            if before_num < after_num:
+                result.append(before_num)
+            else:
+                result.append(after_num)
+
+        day_df["stop_point_predict"] = result
+
+        return day_df
+
+
+    def merge_point(self, day_df):
+
+        close_price = list(day_df["day_close"])
+        enter_point_predict = list(day_df["enter_point_predict"])
+
+        stop_point_predict = list(day_df["stop_point_predict"])
+        stop_point_threshold = list(day_df["stop_point_threshold"])
+        
+        enter_point = []
+        stop_point = []
+
+        for i in range(len(close_price)):
+            if close_price[i] < enter_point_predict[i]:
+                enter_point.append(close_price[i])
+            else:
+                enter_point.append(enter_point_predict[i])
+
+            if stop_point_predict[i] < stop_point_threshold[i]:
+                stop_point.append(stop_point_predict[i])
+            else:
+                stop_point.append(stop_point_threshold[i])
+
+            if enter_point[i] <= stop_point[i]:
+                stop_point[i] = enter_point[i] * 0.97
+
+        day_df["enter_point"] = enter_point
+        day_df["stop_point"] = stop_point
 
         return day_df
 
@@ -143,6 +179,7 @@ class ThreeScreen(object):
         week_df = self.target_point(week_df)
         day_df = self.enter_point(day_df, 20)
         day_df = self.stop_point(day_df, 20)
+        day_df = self.merge_point(day_df)
 
         # resample week kline
         week_df_resampled = week_df.set_index("week_date", inplace = False)
@@ -172,7 +209,7 @@ class ThreeScreen(object):
         merge_result["model_signal"] = result
 
         merge_result["profit"] = merge_result["target_point"] - merge_result["enter_point"]
-        merge_result["risk"] = merge_result["day_close"] - merge_result["stop_point"]
+        merge_result["risk"] = merge_result["enter_point"] - merge_result["stop_point"]
         merge_result["profit_risk_ratio"] = merge_result["profit"] / merge_result["risk"]
 
         #print merge_result.ix[:, ["day_date", "day_open", "day_close", "week_pulse", "week_pulse_signal", "day_force_ema", "day_force_signal", "model_signal", "week_close_ema_short_predict", "week_close_ema_long_predict", "enter_point", "target_point", "stop_point", "stop_point_threshold", "profit", "risk"]]

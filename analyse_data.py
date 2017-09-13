@@ -28,6 +28,7 @@ import json
 import shutil
 import logging
 import pandas as pd
+import traceback  
 from datetime import datetime, timedelta
 from processor.feature_extractor import FeatureExtractor
 from processor.signal_generator import SignalGenerator
@@ -199,18 +200,22 @@ def main():
             logging.info("modeling (%d/%d)" % (i, len(day_kline)))
 
         try:
-
-            if day_kline[stock_id].shape[0] == 0 or week_kline[stock_id].shape[0] == 0:
+            if day_kline[stock_id].shape[0] == 0:
+                continue
+            elif stock_id not in week_kline:
+                continue
+            elif week_kline[stock_id].shape[0] == 0:
                 continue
             else:
                 single_result[stock_id] = m.signal(day_kline[stock_id], week_kline[stock_id])
 
+            single_result[stock_id].to_csv("%s/%s" % (single_result_path, stock_id), index=False)
+
         except Exception, ex:
-            print week_kline[stock_id]
+            print str(ex)
+            #print week_kline[stock_id]
             print stock_id
-
-        single_result[stock_id].to_csv("%s/%s" % (single_result_path, stock_id), index=False)
-
+            traceback.print_exc()
 
     merge_result_list = []
     

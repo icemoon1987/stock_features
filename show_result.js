@@ -93,37 +93,30 @@ function renderModelSignal(params, api) {
 	var pos = api.coord([api.value(0), api.value(1)]);
 	var model_signal = api.value(2);
 
-	var style = api.style({
-		stroke: api.visual('color')
-	});
+	//var style = api.style();
+	var style = {};
 
-	var r = 0;
 	var invisible = false;
+	
+	style.text = model_signal;
+	style.x = pos[0];
+	style.y = pos[1];
 
-	if(model_signal > 0 && model_signal <= 2){
-		invisible = true;
+	if(model_signal == 0){
+		return;
 	}
-	else if(model_signal > 2){
-		style.stroke = "#000000";
-		style.fill = "#000000";
-		r = 3;
+	else if(model_signal >= 4){
+		//style.fill = "#00FF00";
 	}
 	else if(model_signal < 0){
-		style.stroke = "#FF0000";
-		style.fill = "#FF0000";
-		r = 3;
+		//style.fill = "#FF0000";
 	}
 
 	return {
-			type: 'circle',
-			invisible: invisible,
-			shape: {
-				cx: pos[0], cy: pos[1], r: r
-			},
-			style: style
+		type: 'text',
+		invisible: true,
+		style: style
 	};
-
-	return;
 }
 
 
