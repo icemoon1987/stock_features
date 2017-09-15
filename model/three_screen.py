@@ -211,6 +211,7 @@ class ThreeScreen(object):
         merge_result["profit"] = merge_result["target_point"] - merge_result["enter_point"]
         merge_result["risk"] = merge_result["enter_point"] - merge_result["stop_point"]
         merge_result["profit_risk_ratio"] = merge_result["profit"] / merge_result["risk"]
+        merge_result["profit_ratio"] = merge_result["profit"] / merge_result["enter_point"]
 
         #print merge_result.ix[:, ["day_date", "day_open", "day_close", "week_pulse", "week_pulse_signal", "day_force_ema", "day_force_signal", "model_signal", "week_close_ema_short_predict", "week_close_ema_long_predict", "enter_point", "target_point", "stop_point", "stop_point_threshold", "profit", "risk"]]
 
