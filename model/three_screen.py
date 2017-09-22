@@ -165,7 +165,7 @@ class ThreeScreen(object):
             else:
                 stop_point.append(stop_point_threshold[i])
 
-            if enter_point[i] <= stop_point[i]:
+            if enter_point[i] <= stop_point[i] + 0.01:
                 stop_point[i] = enter_point[i] * 0.97
 
         day_df["enter_point"] = enter_point
