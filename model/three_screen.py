@@ -47,7 +47,7 @@ class ThreeScreen(object):
     def enter_point(self, day_df, day_window):
 
         low_price = list(day_df["day_low"])
-        close_ema = list(day_df["day_close_ema_long"])
+        close_ema = list(day_df["day_close_ema_short"])
         gap_result = []
 
         for i in range(len(low_price)):
@@ -84,7 +84,7 @@ class ThreeScreen(object):
 
         day_df["day_low_ema_gap_mean"] = mean_gap_result
 
-        day_df["day_close_ema_predict"] = 2 * day_df["day_close_ema_long"] - day_df.shift(1)["day_close_ema_long"]
+        day_df["day_close_ema_predict"] = 2 * day_df["day_close_ema_short"] - day_df.shift(1)["day_close_ema_short"]
 
         #day_df["stop_point_threshold"] = day_df["day_close_ema_long"] + day_df["day_low_ema_gap_mean"]
         day_df["stop_point_threshold"] = day_df["day_close_ema_predict"] + day_df["day_low_ema_gap_mean"]

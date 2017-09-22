@@ -109,7 +109,7 @@ function renderModelSignal(params, api) {
 		//style.fill = "#00FF00";
 	}
 	else if(model_signal < 0){
-		//style.fill = "#FF0000";
+		style.fill = "#FF0000";
 	}
 
 	return {

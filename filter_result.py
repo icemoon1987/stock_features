@@ -131,8 +131,10 @@ def main():
 
     #filter_result = merge_result.where(merge_result["model_signal"] > 0).where(merge_result["stop_point"] < merge_result["stop_point_threshold"]).where(merge_result["profit_risk_ratio"] > 1.0).dropna()
     filter_result = merge_result.where(merge_result["model_signal"] > 0).dropna()
-    filter_result = filter_result.where(merge_result["stop_point"] < merge_result["stop_point_threshold"]).dropna()
-    filter_result = filter_result.where(merge_result["profit_risk_ratio"] > 0).dropna()
+    #filter_result = merge_result.where(merge_result["model_signal"] == 3).dropna()
+    #filter_result = filter_result.where(merge_result["stop_point"] < merge_result["stop_point_threshold"]).dropna()
+    filter_result = filter_result.where(merge_result["profit_risk_ratio"] > 2.0).dropna()
+    filter_result = filter_result.where(merge_result["profit_ratio"] > 0.05).dropna()
 
     filter_result = filter_result.sort_values(by = ["model_signal", "profit_risk_ratio"], ascending=False)
 
