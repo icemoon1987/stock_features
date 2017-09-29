@@ -1,0 +1,24 @@
+{
+	"time_gap": 5,
+
+	"monitors":
+	[
+		{
+			"code": "000801",
+			"upper_limit": 9.11,
+			"lower_limit": 8.40
+		},
+		{
+			"code": "600483",
+			"upper_limit": 9.97,
+			"lower_limit": 8.92
+		}
+	],
+
+	"email_host": "",
+	"email_user": "",
+	"email_pass": "",
+
+	"email_to": []
+}
+

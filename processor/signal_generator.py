@@ -111,3 +111,45 @@ class SignalGenerator(object):
         return input_df
 
 
+    def deviation_signal(self, input_df, close_col, macd_bar_col, window, signal_col):
+
+        close = list(input_df[close_col])
+        macd_bar = list(input_df[macd_bar_col])
+        last_min = []
+        result = []
+
+        for i in range(len(close)):
+            start_index = i - window + 1
+            if start_index < 0:
+                start_index = 0
+
+            close_min_index = start_index
+
+            for j in range(start_index, i):
+                if close[j] < close[close_min_index]:
+                    close_min_index = j
+
+            if close[i] <= close[close_min_index] and macd_bar[i] > macd_bar[close_min_index]:
+
+                valid = False
+                for j in range(close_min_index, i):
+                    if macd_bar[j] > 0:
+                        valid = True
+                        break
+
+                if valid:
+                    last_min.append(close[close_min_index])
+                    result.append(1)
+                else:
+                    last_min.append(close[close_min_index])
+                    result.append(0)
+            else:
+                last_min.append(close[close_min_index])
+                result.append(0)
+
+        input_df[signal_col] = result
+        input_df["day_last_min"] = last_min
+
+        return input_df
+
+

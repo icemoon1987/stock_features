@@ -144,24 +144,28 @@ def main():
         if i % 100 == 0 or i == len(day_kline):
             logging.info("analysing day k line (%d/%d)" % (i, len(day_kline)))
 
-        # add MA
-        #day_kline[stock_id] = fe.ma(day_kline[stock_id], "close", "close_ma_11", 11)
-
         # add EMA
         day_kline[stock_id] = fe.ema(day_kline[stock_id], "day_close", "day_close_ema_short", 11)
         day_kline[stock_id] = fe.ema(day_kline[stock_id], "day_close", "day_close_ema_long", 22)
 
         # add MACD
-        #day_kline[stock_id] = fe.macd(day_kline[stock_id], "close", "macd", "macd_signal", "macd_bar", 12, 26, 9)
+        day_kline[stock_id] = fe.macd(day_kline[stock_id], "day_close", "day_macd", "day_macd_signal", "day_macd_bar", 12, 26, 9)
 
         # add Pulse
-        #day_kline[stock_id] = fe.pulse(day_kline[stock_id], "close_ema_11", "macd_bar", "pulse")
+        day_kline[stock_id] = fe.pulse(day_kline[stock_id], "day_close_ema_short", "day_macd_bar", "day_pulse")
+
+        # add Pulse signal
+        day_kline[stock_id] = sg.pulse_signal(day_kline[stock_id], "day_pulse", "day_pulse_signal")
 
         # add Force
         day_kline[stock_id] = fe.force_index(day_kline[stock_id], "day_close", "day_volume", "day_force_raw", "day_force_ema", 2)
 
         # add Force signal
         day_kline[stock_id] = sg.force_signal(day_kline[stock_id], "day_force_ema", 20, "day_force_signal")
+
+        # add Deviation signal
+        day_kline[stock_id] = sg.deviation_signal(day_kline[stock_id], "day_close", "day_macd_bar", 60, "deviation_signal")
+
 
     i = 0
     for stock_id in week_kline:

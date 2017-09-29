@@ -46,6 +46,10 @@ class TushareInterface(object):
         return ts.get_k_data(stock_id, ktype="D")
 
 
+    def get_realtime_quotes(self, stock_id):
+        return ts.get_realtime_quotes(stock_id)
+
+
     def get_week_kline(self, stock_id, start_date, end_date):
 
         start_date = start_date.strftime("%Y-%m-%d")
