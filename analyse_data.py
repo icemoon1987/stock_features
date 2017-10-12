@@ -87,18 +87,22 @@ def print_help():
     return
 
 
-def load_kline_data(data_dir, prefix):
+def load_kline_data(data_dir, prefix, stock_id):
 
     result = pd.DataFrame()
 
     kline_map = {}
 
-    for file_name in os.listdir(data_dir):
+    if stock_id != None:
+        file_list = [stock_id]
+    else:
+        file_list = os.listdir(data_dir)
+
+
+    for file_name in file_list:
 
         stock_id = file_name
-
         tmp = pd.read_csv(data_dir + "/" + file_name, parse_dates=["date"])
-
         rename_map = {}
 
         for column in tmp.columns:
@@ -113,10 +117,19 @@ def load_kline_data(data_dir, prefix):
 
 def main():
 
-    if len(sys.argv) >= 2:
-        date = datetime.strptime(sys.argv[1], "%Y%m%d")
+    if len(sys.argv) == 2:
+
+        stock_id = sys.argv[1]
+        date = datetime.now()
+
+    elif len(sys.argv) == 3:
+
+        stock_id = sys.argv[1]
+        date = datetime.strptime(sys.argv[2], "%Y%m%d")
+
     else:
-        date = datetime.strptime(datetime.now().strftime("%Y%m%d"), "%Y%m%d")
+        stock_id = None
+        date = datetime.now()
 
     conf_file = "./conf/config.json"
 
@@ -127,10 +140,10 @@ def main():
     day_kline_path = "%s/kline/day/%s" % (conf_obj["data_dir"], date.strftime("%Y%m%d"))
     week_kline_path = "%s/kline/week/%s" % (conf_obj["data_dir"], date.strftime("%Y%m%d"))
 
-    day_kline = load_kline_data(day_kline_path, "day")
+    day_kline = load_kline_data(day_kline_path, "day", stock_id)
     logging.info("init day kline finish")
 
-    week_kline = load_kline_data(week_kline_path, "week")
+    week_kline = load_kline_data(week_kline_path, "week", stock_id)
     logging.info("init week kline finish")
 
     fe = FeatureExtractor()
@@ -166,6 +179,9 @@ def main():
         # add Deviation signal
         day_kline[stock_id] = sg.deviation_signal(day_kline[stock_id], "day_close", "day_macd_bar", 60, "deviation_signal")
 
+        # add tr and atr
+        day_kline[stock_id] = fe.atr(day_kline[stock_id], "day_close", "day_high", "day_low", 13, "day_tr", "day_atr")
+
 
     i = 0
     for stock_id in week_kline:
@@ -185,6 +201,9 @@ def main():
 
         # add Pulse signal
         week_kline[stock_id] = sg.pulse_signal(week_kline[stock_id], "week_pulse", "week_pulse_signal")
+
+        # add tr and atr
+        week_kline[stock_id] = fe.atr(week_kline[stock_id], "week_close", "week_high", "week_low", 13, "week_tr", "week_atr")
 
     #print day_kline
     #print week_kline

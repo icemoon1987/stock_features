@@ -101,9 +101,15 @@ def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, e
 
 def main():
 
-    if len(sys.argv) >= 2:
+    if len(sys.argv) == 2:
+        stock_id = sys.argv[1]
+        end_date = datetime.now()
+
+    elif len(sys.argv) == 3:
+        stock_id = sys.argv[1]
         end_date = datetime.strptime(sys.argv[2], "%Y%m%d")
     else:
+        stock_id = None
         end_date = datetime.now()
 
     conf_file = "./conf/config.json"
@@ -116,10 +122,15 @@ def main():
     #get_and_store_data(data_if, conf_obj["data_dir"], start_date, end_date)
 
     # Get all stocks
-    all_stock = data_if.get_all_stocks()
+    if stock_id != None:
+        all_stock = data_if.get_all_stocks()
 
-    # Filter ST stocks
-    all_stock = all_stock.where(~all_stock["name"].str.contains("ST")).dropna()
+        # Filter ST stocks
+        all_stock = all_stock.where(~all_stock["name"].str.contains("ST")).dropna()
+
+    else:
+        all_stock = [stock_id]
+
 
     # Filter too new stocks
     up_date_limit = (end_date - timedelta(days = 90)).strftime("%Y%m%d")

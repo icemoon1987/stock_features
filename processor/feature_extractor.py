@@ -26,6 +26,7 @@ import os
 import time
 import pandas as pd
 import numpy as np
+import math
 from datetime import datetime, timedelta
 
 class FeatureExtractor(object):
@@ -127,5 +128,35 @@ class FeatureExtractor(object):
 
         return input_df
 
+
+    def atr(self, input_df, close_price_col, high_price_col, low_price_col, day_num, tr_col, atr_col):
+
+        close_price_list = list(input_df[close_price_col])
+        high_price_list = list(input_df[high_price_col])
+        low_price_list = list(input_df[low_price_col])
+
+        tr_result = []
+
+        for i in range(len(close_price_list)):
+            if i == 0:
+                tr_result.append(abs(high_price_list[i] - low_price_list[i]))
+            else:
+                gap1 = abs(high_price_list[i] - low_price_list[i])
+                gap2 = abs(high_price_list[i] - close_price_list[i-1])
+                gap3 = abs(low_price_list[i] - close_price_list[i-1])
+
+                tr_result.append(max([gap1, gap2, gap3]))
+
+        input_df[tr_col] = tr_result
+
+        input_df = self.ma(input_df, tr_col, atr_col, day_num)
+
+        input_df[atr_col + "1_high"] = input_df[close_price_col] + input_df[atr_col]
+        input_df[atr_col + "1_low"] = input_df[close_price_col] - input_df[atr_col]
+
+        input_df[atr_col + "2_high"] = input_df[close_price_col] + 2 * input_df[atr_col]
+        input_df[atr_col + "2_low"] = input_df[close_price_col] - 2 * input_df[atr_col]
+
+        return input_df
 
 
