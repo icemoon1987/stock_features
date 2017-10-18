@@ -120,16 +120,16 @@ def main():
     if len(sys.argv) == 2:
 
         stock_id = sys.argv[1]
-        date = datetime.now()
+        target_date = datetime.strptime(datetime.now().strftime("%Y%m%d"), "%Y%m%d")
 
     elif len(sys.argv) == 3:
 
         stock_id = sys.argv[1]
-        date = datetime.strptime(sys.argv[2], "%Y%m%d")
+        target_date = datetime.strptime(sys.argv[2], "%Y%m%d")
 
     else:
         stock_id = None
-        date = datetime.now()
+        target_date = datetime.strptime(datetime.now().strftime("%Y%m%d"), "%Y%m%d")
 
     conf_file = "./conf/config.json"
 
@@ -137,8 +137,8 @@ def main():
     conf_obj = init(conf_file)
     logging.info("init finish")
 
-    day_kline_path = "%s/kline/day/%s" % (conf_obj["data_dir"], date.strftime("%Y%m%d"))
-    week_kline_path = "%s/kline/week/%s" % (conf_obj["data_dir"], date.strftime("%Y%m%d"))
+    day_kline_path = "%s/kline/day/%s" % (conf_obj["data_dir"], target_date.strftime("%Y%m%d"))
+    week_kline_path = "%s/kline/week/%s" % (conf_obj["data_dir"], target_date.strftime("%Y%m%d"))
 
     day_kline = load_kline_data(day_kline_path, "day", stock_id)
     logging.info("init day kline finish")
@@ -150,7 +150,7 @@ def main():
     sg = SignalGenerator()
     m = ThreeScreen()
 
-    # calculate features for day kline
+    # Calculate features for day kline
     i = 0
     for stock_id in day_kline:
         i += 1
@@ -183,6 +183,7 @@ def main():
         day_kline[stock_id] = fe.atr(day_kline[stock_id], "day_close", "day_high", "day_low", 13, "day_tr", "day_atr")
 
 
+    # Calculate features for week kline
     i = 0
     for stock_id in week_kline:
         i += 1
@@ -210,7 +211,7 @@ def main():
 
     single_result = {}
 
-    single_result_path = "%s/single_result/%s" % (conf_obj["result_dir"], date.strftime("%Y%m%d"))
+    single_result_path = "%s/single_result/%s" % (conf_obj["result_dir"], target_date.strftime("%Y%m%d"))
 
     if not os.path.exists(single_result_path):
         logging.info("%s does not exist." % (single_result_path))
@@ -241,14 +242,14 @@ def main():
             traceback.print_exc()
 
     merge_result_list = []
-    
+
     i = 0
     for stock_id in single_result:
     	i += 1
         if i % 100 == 0 or i == len(single_result):
             logging.info("merging (%d/%d)" % (i, len(single_result)))
 
-        tmp = single_result[stock_id].where(single_result[stock_id]["day_date"] == date).dropna()
+        tmp = single_result[stock_id].where(single_result[stock_id]["day_date"] == target_date).dropna()
         tmp["stock_id"] = stock_id
 
         if tmp.shape[0] > 0:
@@ -262,7 +263,7 @@ def main():
         logging.info("%s does not exist." % (merge_result_path))
         os.makedirs(merge_result_path)
 
-    merge_result.to_csv("%s/%s" % (merge_result_path, date.strftime("%Y%m%d")), index=False)
+    merge_result.to_csv("%s/%s" % (merge_result_path, target_date.strftime("%Y%m%d")), index=False)
 
     return
 

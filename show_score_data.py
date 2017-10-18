@@ -124,11 +124,15 @@ def df_to_js(df, variable_name):
 
 def main():
 
-    if len(sys.argv) >= 3:
+    if len(sys.argv) >= 5:
         stock_id = sys.argv[1]
-        date = datetime.strptime(sys.argv[2], "%Y%m%d")
+        buy_price = float(sys.argv[2])
+        sell_price = float(sys.argv[3])
+        date = datetime.strptime(sys.argv[4], "%Y%m%d")
     else:
         stock_id = sys.argv[1]
+        buy_price = float(sys.argv[2])
+        sell_price = float(sys.argv[3])
         date = datetime.strptime(datetime.now().strftime("%Y%m%d"), "%Y%m%d")
 
     conf_file = "./conf/config.json"
@@ -142,19 +146,15 @@ def main():
 
     print single_result.columns
 
-    #print single_result.ix[:, ["day_date", "model_signal", "day_close", "day_low_ema_gap_mean", "day_close_ema_predict", "enter_point", "stop_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "week_close_ema_short", "week_close_ema_long"]]
+    single_result["buy_price"] = buy_price
+    single_result["sell_price"] = sell_price
+    single_result["profit"] = sell_price - buy_price
 
-    print single_result.ix[:, ["day_date", "deviation_signal", "day_close", "day_last_min", "day_macd_bar", "enter_point", "stop_point", "target_point", "profit_risk_ratio", "profit_ratio", "week_close_ema_short", "week_close_ema_long", "day_atr1_high", "day_atr1_low", "quick_ema", "slow_ema"]]
+    single_result["buy_score"] = (single_result["day_high"] - single_result["buy_price"]) / (single_result["day_high"] - single_result["day_low"])
+    single_result["sell_score"] = (single_result["sell_price"] - single_result["day_low"]) / (single_result["day_high"] - single_result["day_low"])
+    single_result["trade_score"] = (single_result["sell_price"] - single_result["buy_price"]) / (2 * single_result["day_atr"])
 
-    """
-    f = open("./data.js", "w")
-
-    day_data = single_result.ix[:, ["day_date", "day_open", "day_close", "day_low", "day_high", "week_pulse", "week_pulse_signal", "enter_point", "target_point", "stop_point", "day_force_raw", "day_force_ema", "day_force_signal", "model_signal"]]
-    day_data_str = df_to_js(day_data, "day_data")
-
-    f.write(day_data_str)
-    f.write("\n")
-    """
+    print single_result.ix[:, ["day_date", "day_high", "day_low", "day_atr", "buy_price", "sell_price", "profit", "buy_score", "sell_score", "trade_score"]]
 
     return
 

@@ -139,7 +139,7 @@ def main():
     filter_result = filter_result.sort_values(by = ["model_signal", "profit_risk_ratio"], ascending=False)
 
     #filter_result = filter_result.ix[:, ["day_date", "week_pulse_signal", "day_force_signal", "model_signal", "stop_point_threshold", "stop_point_predict", "stop_point", "day_close", "enter_point_predict", "enter_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "stock_id"]]
-    filter_result = filter_result.ix[:, ["day_date", "model_signal", "day_close", "enter_point", "stop_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "stock_id"]]
+    filter_result = filter_result.ix[:, ["day_date", "model_signal", "day_close", "enter_point", "stop_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "day_atr1_high", "day_atr1_low", "stock_id"]]
 
     print filter_result
 

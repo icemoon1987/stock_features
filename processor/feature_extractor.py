@@ -59,6 +59,8 @@ class FeatureExtractor(object):
                 result = k * input_list[i] + (1.0 - k) * result_list[i - 1]
                 result_list.append(result)
 
+                #print k, input_list[i], (1.0-k), result_list[i-1], result
+
         input_df[output_col] = result_list
 
         return input_df
@@ -74,6 +76,8 @@ class FeatureExtractor(object):
         result_df = self.ema(result_df, macd_col, signal_col, signal_day_num)
 
         result_df[macd_bar_col] = result_df[macd_col] - result_df[signal_col]
+
+        #print result_df
 
         input_df[macd_col] = result_df[macd_col]
         input_df[signal_col] = result_df[signal_col]

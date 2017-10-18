@@ -130,7 +130,7 @@ def main():
     filter_result = merge_result.where(merge_result["deviation_signal"] > 0).dropna()
     filter_result = filter_result.sort_values(by = ["profit_risk_ratio"], ascending=False)
 
-    filter_result = filter_result.ix[:, ["day_date", "deviation_signal", "day_close", "enter_point", "stop_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "stock_id"]]
+    filter_result = filter_result.ix[:, ["day_date", "day_pulse", "week_pulse", "deviation_signal", "day_close", "enter_point", "stop_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "stock_id"]]
 
     print filter_result
 

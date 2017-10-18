@@ -123,13 +123,13 @@ def main():
 
     # Get all stocks
     if stock_id != None:
+        all_stock = [stock_id]
+
+    else:
         all_stock = data_if.get_all_stocks()
 
         # Filter ST stocks
         all_stock = all_stock.where(~all_stock["name"].str.contains("ST")).dropna()
-
-    else:
-        all_stock = [stock_id]
 
 
     # Filter too new stocks
