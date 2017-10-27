@@ -144,7 +144,7 @@ def main():
 
     #print single_result.ix[:, ["day_date", "model_signal", "day_close", "day_low_ema_gap_mean", "day_close_ema_predict", "enter_point", "stop_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "week_close_ema_short", "week_close_ema_long"]]
 
-    print single_result.ix[:, ["day_date", "deviation_signal", "day_close", "day_last_min", "day_macd_bar", "enter_point", "stop_point", "target_point", "profit_risk_ratio", "profit_ratio", "week_close_ema_short", "week_close_ema_long", "day_atr1_high", "day_atr1_low", "quick_ema", "slow_ema"]]
+    print single_result.ix[:, ["day_date", "deviation_signal", "day_close", "day_last_min", "day_last_min_bar", "day_macd_bar", "enter_point", "stop_point", "target_point", "profit_risk_ratio", "profit_ratio", "week_close_ema_short", "week_close_ema_long", "day_atr1_high", "day_atr1_low"]]
 
     """
     f = open("./data.js", "w")

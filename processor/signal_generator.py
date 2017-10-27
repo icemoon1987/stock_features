@@ -116,9 +116,24 @@ class SignalGenerator(object):
         close = list(input_df[close_col])
         macd_bar = list(input_df[macd_bar_col])
         last_min = []
+        last_min_bar = []
         result = []
 
         for i in range(len(close)):
+
+            if i == 0:
+                last_min.append(close[i])
+                last_min_bar.append(macd_bar[i])
+                result.append(0)
+                continue
+
+            if result[i - 1] > 0:
+                if macd_bar[i] > macd_bar[i-1]:
+                    last_min.append(last_min[i-1])
+                    last_min_bar.append(last_min_bar[i-1])
+                    result.append(result[i - 1] + 1)
+                    continue
+
             start_index = i - window + 1
             if start_index < 0:
                 start_index = 0
@@ -139,16 +154,20 @@ class SignalGenerator(object):
 
                 if valid:
                     last_min.append(close[close_min_index])
+                    last_min_bar.append(macd_bar[close_min_index])
                     result.append(1)
                 else:
                     last_min.append(close[close_min_index])
+                    last_min_bar.append(macd_bar[close_min_index])
                     result.append(0)
             else:
                 last_min.append(close[close_min_index])
+                last_min_bar.append(macd_bar[close_min_index])
                 result.append(0)
 
         input_df[signal_col] = result
         input_df["day_last_min"] = last_min
+        input_df["day_last_min_bar"] = last_min_bar
 
         return input_df
 
