@@ -156,6 +156,8 @@ def main():
 
     print single_result.ix[:, ["day_date", "day_high", "day_low", "day_atr", "buy_price", "sell_price", "profit", "buy_score", "sell_score", "trade_score"]]
 
+    print "\n"
+
     return
 
 

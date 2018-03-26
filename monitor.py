@@ -29,6 +29,12 @@ from datetime import datetime, timedelta
 from data_interface.tushare_interface import TushareInterface
 
 
+##
+# @brief    init function
+#
+# @param    conf_file
+#
+# @return   
 def init(conf_file):
 
     with open(conf_file, "r") as f:

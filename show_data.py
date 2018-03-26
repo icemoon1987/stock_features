@@ -153,6 +153,8 @@ def main():
     f.write(day_data_str)
     f.write("\n")
 
+    f.close()
+
     return
 
 
