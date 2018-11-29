@@ -59,4 +59,14 @@ class TushareInterface(object):
         return ts.get_k_data(stock_id, ktype="W")
 
 
+if __name__ == "__main__":
+    data_if = TushareInterface()
+
+    #all_stock = data_if.get_all_stocks()
+
+    #name_list = list(all_stock["name"])
+
+    day_kline = data_if.get_day_kline("sh", datetime.strptime("2018-11-26", "%Y-%m-%d"), datetime.strptime("2018-11-28", "%Y-%m-%d"))
+
+    print day_kline
 

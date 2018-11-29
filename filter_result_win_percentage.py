@@ -127,8 +127,8 @@ def main():
     merge_result = pd.read_csv( "%s/%s" % (merge_result_path, date.strftime("%Y%m%d")) )
 
     # Filter
-    filter_result = merge_result.where(merge_result["deviation_signal"] > 0).dropna()
-    filter_result = filter_result.sort_values(by = ["profit_risk_ratio"], ascending=False)
+    filter_result = merge_result.where(merge_result["day_win_percentage"] > 0.5).dropna()
+    filter_result = filter_result.sort_values(by = ["day_win_percentage"], ascending=False)
 
     filter_result = filter_result.ix[:, ["day_date", "day_pulse", "week_pulse", "deviation_signal", "day_close", "enter_point", "stop_point", "target_point", "profit", "risk", "profit_risk_ratio", "profit_ratio", "day_win_percentage", "stock_id"]]
 

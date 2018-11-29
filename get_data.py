@@ -131,7 +131,6 @@ def main():
         # Filter ST stocks
         all_stock = all_stock.where(~all_stock["name"].str.contains("ST")).dropna()
 
-
     # Filter too new stocks
     up_date_limit = (end_date - timedelta(days = 90)).strftime("%Y%m%d")
     all_stock = all_stock.where(all_stock["timeToMarket"] < float(up_date_limit)).dropna()
@@ -142,6 +141,8 @@ def main():
 
     stock_set = set(all_stock.index)
     logging.info("get %d stock ids" % (len(stock_set)))
+
+    stock_set.add("sh")
 
     # Get k line data
     kline_type = ["day", "week"]

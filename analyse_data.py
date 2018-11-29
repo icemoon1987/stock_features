@@ -94,7 +94,7 @@ def load_kline_data(data_dir, prefix, stock_id):
     kline_map = {}
 
     if stock_id != None:
-        file_list = [stock_id]
+        file_list = [stock_id, "sh"]
     else:
         file_list = os.listdir(data_dir)
 
@@ -131,6 +131,10 @@ def main():
         stock_id = None
         target_date = datetime.strptime(datetime.now().strftime("%Y%m%d"), "%Y%m%d")
 
+    print len(sys.argv)
+    print stock_id
+    print target_date
+
     conf_file = "./conf/config.json"
 
     # Init
@@ -139,6 +143,9 @@ def main():
 
     day_kline_path = "%s/kline/day/%s" % (conf_obj["data_dir"], target_date.strftime("%Y%m%d"))
     week_kline_path = "%s/kline/week/%s" % (conf_obj["data_dir"], target_date.strftime("%Y%m%d"))
+
+    print day_kline_path
+    print week_kline_path
 
     day_kline = load_kline_data(day_kline_path, "day", stock_id)
     logging.info("init day kline finish")
@@ -153,6 +160,7 @@ def main():
     # Calculate features for day kline
     i = 0
     for stock_id in day_kline:
+
         i += 1
         if i % 100 == 0 or i == len(day_kline):
             logging.info("analysing day k line (%d/%d)" % (i, len(day_kline)))
@@ -181,6 +189,19 @@ def main():
 
         # add tr and atr
         day_kline[stock_id] = fe.atr(day_kline[stock_id], "day_close", "day_high", "day_low", 13, "day_tr", "day_atr")
+
+        # add day_increase_rate
+        day_kline[stock_id] = fe.rise_rate(day_kline[stock_id], "day_open", "day_close", "day_rise_rate")
+
+        # merge shangzheng index open, close and increase_rate
+        day_kline[stock_id] = fe.merge_target(day_kline[stock_id], day_kline["sh"], "day_date", "day_open", "day_close", "target_day_open", "target_day_close")
+        day_kline[stock_id] = fe.rise_rate(day_kline[stock_id], "target_day_open", "target_day_close", "target_day_rise_rate")
+
+        day_kline[stock_id] = sg.win_signal(day_kline[stock_id], "day_rise_rate", "target_day_rise_rate", "day_win_signal")
+
+        day_kline[stock_id] = sg.win_percentage(day_kline[stock_id], "day_win_signal", 180, "day_win_percentage")
+
+        #print day_kline[stock_id].ix[:, ["day_date", "day_open", "day_close", "day_rise_rate", "target_day_open", "target_day_close", "target_day_rise_rate", "day_win_signal", "day_win_percentage"]]
 
 
     # Calculate features for week kline

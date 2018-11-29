@@ -110,6 +110,35 @@ class SignalGenerator(object):
 
         return input_df
 
+    
+    def win_signal(self, input_df, rise_rate, target_rise_rate, signal_col):
+
+        rise_rate_list = list(input_df[rise_rate])
+        target_rise_rate_list = list(input_df[target_rise_rate])
+
+        result_list = []
+
+        for i in range(len(rise_rate_list)):
+            if rise_rate_list[i] == -1 or target_rise_rate_list[i] == -1:
+                result_list.append(0)
+            elif rise_rate_list[i] > target_rise_rate_list[i]:
+                result_list.append(1)
+            else:
+                result_list.append(0)
+
+        input_df[signal_col] = result_list
+
+        return input_df
+
+
+    def win_percentage(self, input_df, win_signal_col, day_window, win_persentage_col):
+
+        win_times = input_df.ix[:, [win_signal_col]].rolling(window=day_window, min_periods=0).sum()
+
+        input_df[win_persentage_col] = win_times / day_window
+
+        return input_df
+
 
     def deviation_signal(self, input_df, close_col, macd_bar_col, window, signal_col):
 

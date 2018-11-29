@@ -164,3 +164,49 @@ class FeatureExtractor(object):
         return input_df
 
 
+    def rise_rate(self, input_df, open_col, close_col, rise_rate_col):
+
+        open_col_list = list(input_df[open_col])
+        close_col_list = list(input_df[close_col])
+
+        result_list = []
+
+        for i in range(len(open_col_list)):
+            if open_col_list[i] == -1:
+                result_list.append(-1)
+                continue
+
+            result_list.append((close_col_list[i] - open_col_list[i]) / open_col_list[i])
+
+        input_df[rise_rate_col] = result_list
+
+        return input_df
+
+
+    def merge_target(self, input_df, target_df, date_col, open_col, close_col, target_open_col, target_close_col):
+
+        src_date_list = list(input_df[date_col])
+        target_date_list = list(target_df[date_col])
+        open_list = list(target_df[open_col])
+        close_list = list(target_df[close_col])
+
+        result_open = []
+        result_close = []
+
+        for i in range(len(src_date_list)):
+
+            try:
+                target_index = target_date_list.index(src_date_list[i])
+            except:
+                result_open.append(-1)
+                result_close.append(-1)
+                continue
+
+            result_open.append(open_list[target_index])
+            result_close.append(close_list[target_index])
+
+        input_df[target_open_col] = result_open
+        input_df[target_close_col] = result_close
+
+        return input_df
+
