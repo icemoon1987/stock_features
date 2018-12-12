@@ -34,6 +34,7 @@ class ThreeScreenEvaluator(object):
 
     def evaluate(self, input_df):
 
+        deviation_signal_list = list(input_df["deviation_signal"])
         model_signal_list = list(input_df["model_signal"])
         day_date_list = list(input_df["day_date"])
         profit_risk_ratio_list = list(input_df["profit_risk_ratio"])
@@ -52,6 +53,7 @@ class ThreeScreenEvaluator(object):
         for i in range(len(day_date_list)):
 
             if  model_signal_list[i] >= 4 \
+                and deviation_signal_list[i] >= 4 \
                 and profit_risk_ratio_list[i] > 2.0 \
                 and profit_risk_ratio_list[i] < 10.0 \
                 and profit_ratio_list[i] > 0.05 \

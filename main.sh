@@ -19,8 +19,11 @@
 #
 ######################################################
 
-python ./get_data.py
-python ./analyse_data.py
-python ./filter_result.py
+PYTHON="/usr/bin/python"
+
+$PYTHON ./get_data.py
+$PYTHON ./analyse_data.py
+
+#python ./filter_result.py
 
 
