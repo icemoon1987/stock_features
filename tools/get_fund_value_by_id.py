@@ -37,11 +37,18 @@ def get_fund_value(fund_id, date):
     req = urllib2.Request(url, headers = header)
     resp = urllib2.urlopen(req, timeout=10)
 
-    for line in resp.readlines():
-        if line.find("fld_unitnetvalue") != -1:
-            return line.split(">")[1].split("<")[0]
+    name = None
+    value = None
 
-    return None
+    for line in resp.readlines():
+
+        if line.find("fundname") != -1:
+            name = line.split(">")[1].split("<")[0]
+
+        if line.find("fld_unitnetvalue") != -1:
+            value = line.split(">")[1].split("<")[0]
+
+    return name, value
 
 
 def main():
@@ -52,11 +59,12 @@ def main():
             fund_id = ary[0]
             date = ary[1]
 
-            value = get_fund_value(fund_id, date)
+            name, value = get_fund_value(fund_id, date)
 
             result = []
             result.append(fund_id)
             result.append(date)
+            result.append(name)
             result.append(value)
 
             print "\t".join([str(a) for a in result])
