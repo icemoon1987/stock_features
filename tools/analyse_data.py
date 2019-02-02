@@ -36,7 +36,6 @@ from datetime import datetime, timedelta
 from processor.feature_extractor import FeatureExtractor
 from processor.signal_generator import SignalGenerator
 from model.three_screen import ThreeScreen
-import matplotlib.pyplot as plt
 
 pd.set_option("display.width", 300)
 pd.set_option("display.max_rows", None)
