@@ -22,11 +22,14 @@
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
+sys.path.append(".")
+sys.path.append("..")
 import os
 import time
 import json
 import shutil
 import logging
+import progressbar
 import pandas as pd
 from datetime import datetime, timedelta
 from data_interface.tushare_interface import TushareInterface
@@ -80,6 +83,9 @@ def print_help():
 
 def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, end_date):
 
+    print "fetching %s k line, total num %s: " % (kline_type, len(stock_list))
+    pbar = progressbar.ProgressBar(max_value=len(stock_list))
+
     i = 0
     for stock_id in stock_list:
         i += 1
@@ -95,6 +101,8 @@ def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, e
 
         if kline.shape[0] > 0:
             kline.to_csv("%s/%s" % (data_dir, stock_id), index=False)
+
+        pbar.update(i)
 
     return
 
@@ -145,12 +153,13 @@ def main():
     stock_set.add("sh")
 
     # Get k line data
-    kline_type = ["day", "week"]
+    kline_type_list = ["day", "week"]
 
-    for type in kline_type:
+    for kline_type in kline_type_list:
 
-        kline_path = "%s/kline/%s/%s" % (conf_obj["data_dir"], type, end_date.strftime("%Y%m%d"))
+        kline_path = "%s/kline/%s/%s" % (conf_obj["data_dir"], kline_type, end_date.strftime("%Y%m%d"))
 
+        # Skip already downloaded data
         if not os.path.exists(kline_path):
             logging.info("%s does not exist." % (kline_path))
             os.makedirs(kline_path)
@@ -159,17 +168,17 @@ def main():
             finish_set = set(os.listdir(kline_path))
 
         togo_set = stock_set - finish_set
-        logging.info("type: %s, %d finished, %d to go." % (type, len(finish_set), len(togo_set)))
+        logging.info("kline_type: %s, %d finished, %d to go." % (kline_type, len(finish_set), len(togo_set)))
     
-        if type == "day":
+        if kline_type == "day":
             start_date = end_date - timedelta(days = conf_obj.get("data_days", 365))
-        elif type == "week":
+        elif kline_type == "week":
             start_date = end_date - timedelta(days = conf_obj.get("data_days", 730))
         else:
             start_date = end_date - timedelta(days = conf_obj.get("data_days", 365))
 
-        get_and_store_kline(data_if, type, list(togo_set), kline_path, start_date, end_date)
-        logging.info("get %d %s kline." % (len(togo_set), type))
+        get_and_store_kline(data_if, kline_type, list(togo_set), kline_path, start_date, end_date)
+        logging.info("get %d %s kline." % (len(togo_set), kline_type))
 
     return
 

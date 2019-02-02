@@ -22,11 +22,14 @@
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
+sys.path.append(".")
+sys.path.append("..")
 import os
 import time
 import json
 import shutil
 import logging
+import progressbar
 import pandas as pd
 import traceback  
 from datetime import datetime, timedelta
@@ -120,11 +123,15 @@ def main():
     if len(sys.argv) == 2:
 
         stock_id = sys.argv[1]
+        if stock_id == "all":
+            stock_id = None
         target_date = datetime.strptime(datetime.now().strftime("%Y%m%d"), "%Y%m%d")
 
     elif len(sys.argv) == 3:
 
         stock_id = sys.argv[1]
+        if stock_id == "all":
+            stock_id = None
         target_date = datetime.strptime(sys.argv[2], "%Y%m%d")
 
     else:
@@ -158,8 +165,14 @@ def main():
     m = ThreeScreen()
 
     # Calculate features for day kline
+
+    print "analysing day k line, total num: %d" % (len(day_kline))
+    pbar = progressbar.ProgressBar(max_value=len(day_kline))
+
     i = 0
     for stock_id in day_kline:
+
+        pbar.update(i)
 
         i += 1
         if i % 100 == 0 or i == len(day_kline):
@@ -204,9 +217,17 @@ def main():
         #print day_kline[stock_id].ix[:, ["day_date", "day_open", "day_close", "day_rise_rate", "target_day_open", "target_day_close", "target_day_rise_rate", "day_win_signal", "day_win_percentage"]]
 
 
+
     # Calculate features for week kline
+
+    print "analysing week k line, total num: %d" % (len(week_kline))
+    pbar = progressbar.ProgressBar(max_value=len(week_kline))
+
     i = 0
     for stock_id in week_kline:
+
+        pbar.update(i)
+
         i += 1
         if i % 100 == 0 or i == len(week_kline):
             logging.info("analysing week k line (%d/%d)" % (i, len(week_kline)))
@@ -238,8 +259,15 @@ def main():
         logging.info("%s does not exist." % (single_result_path))
         os.makedirs(single_result_path)
 
+
+    print "modeling, total num: %d" % (len(day_kline))
+    pbar = progressbar.ProgressBar(max_value=len(day_kline))
+
     i = 0
     for stock_id in day_kline:
+
+        pbar.update(i)
+
         i += 1
         if i % 100 == 0 or i == len(day_kline):
             logging.info("modeling (%d/%d)" % (i, len(day_kline)))
@@ -264,8 +292,14 @@ def main():
 
     merge_result_list = []
 
+    print "merging, total num: %d" % (len(single_result))
+    pbar = progressbar.ProgressBar(max_value=len(single_result))
+
     i = 0
     for stock_id in single_result:
+
+        pbar.update(i)
+
     	i += 1
         if i % 100 == 0 or i == len(single_result):
             logging.info("merging (%d/%d)" % (i, len(single_result)))
