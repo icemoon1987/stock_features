@@ -101,6 +101,8 @@ def get_and_store_kline(data_if, kline_type, stock_list, data_dir, start_date, e
 
         if kline.shape[0] > 0:
             kline.to_csv("%s/%s" % (data_dir, stock_id), index=False)
+        else:
+            logging.error("get %s k line for %s failed!" % (kline_type, stock_id))
 
         pbar.update(i)
 
