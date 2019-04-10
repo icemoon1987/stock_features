@@ -212,9 +212,13 @@ def main():
         day_kline[stock_id] = sg.win_signal(day_kline[stock_id], "day_rise_rate", "target_day_rise_rate", "day_win_signal")
 
         day_kline[stock_id] = sg.win_percentage(day_kline[stock_id], "day_win_signal", 180, "day_win_percentage")
+        day_kline[stock_id] = sg.win_percentage(day_kline[stock_id], "day_win_signal", 180, "day_win_percentage")
 
-        #print day_kline[stock_id].ix[:, ["day_date", "day_open", "day_close", "day_rise_rate", "target_day_open", "target_day_close", "target_day_rise_rate", "day_win_signal", "day_win_percentage"]]
+        day_kline[stock_id] = fe.will_profit(day_kline[stock_id], "day_close", "will_profit", 20, 0.05)
 
+        #print day_kline[stock_id].ix[:, ["day_date", "day_close", "will_profit"]]
+
+        #return
 
 
     # Calculate features for week kline

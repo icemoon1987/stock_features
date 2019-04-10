@@ -15,6 +15,7 @@ RUN pip install progressbar2
 RUN pip install pandas
 RUN pip install tushare
 RUN pip install bs4
+RUN pip install tensorflow
 
 # Clean up
 RUN rm -rf /tmp/software

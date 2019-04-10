@@ -210,3 +210,27 @@ class FeatureExtractor(object):
 
         return input_df
 
+
+
+    def will_profit(self, input_df, close_col, will_profit_col, time_gap, target_profit):
+
+        close_list = list(input_df[close_col])
+
+        will_profit = []
+
+        for i in range(len(close_list)):
+            eval_close_list = close_list[i + 1 : i + time_gap + 1]
+            target_close = close_list[i] * ( 1 + target_profit )
+
+            will_profit.append(0)
+
+            for eval_close in eval_close_list:
+                if eval_close > target_close:
+                    will_profit[-1] = 1
+
+        input_df[will_profit_col] = will_profit
+        
+        return input_df
+
+
+
