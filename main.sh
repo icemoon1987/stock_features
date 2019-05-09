@@ -21,7 +21,12 @@
 
 PYTHON="/usr/bin/python"
 
-$PYTHON ./tools/get_data.py
-$PYTHON ./tools/analyse_data.py
-$PYTHON ./tools/evaluate_data.py
+# Get data
+$PYTHON    ./tools/get_data.py
+
+# Analyse data
+$PYTHON    ./tools/analyse_data.py
+
+# evaluate data
+$PYTHON    ./tools/evaluate_data.py
 
