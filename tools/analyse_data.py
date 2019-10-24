@@ -308,7 +308,7 @@ def main():
             logging.info("merging (%d/%d)" % (i, len(single_result)))
 
         tmp = single_result[stock_id].where(single_result[stock_id]["day_date"] == target_date).dropna()
-        tmp["stock_id"] = stock_id
+        tmp["stock_id"] = "stock_" + stock_id
 
         if tmp.shape[0] > 0:
             merge_result_list.append(tmp)

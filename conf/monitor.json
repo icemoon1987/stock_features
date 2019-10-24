@@ -4,9 +4,9 @@
 	"monitors":
 	[
 		{
-			"code": "000533",
-			"upper_limit": 10.44,
-			"lower_limit": 9.80
+			"code": "600036",
+			"upper_limit": 37.00,
+			"lower_limit": 35.50
 		}
 	],
 

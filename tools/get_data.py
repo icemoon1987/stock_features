@@ -152,6 +152,7 @@ def main():
     stock_set = set(all_stock.index)
     logging.info("get %d stock ids" % (len(stock_set)))
 
+    # Get shangzhegn index also. "sh" represents shangzheng index.
     stock_set.add("sh")
 
     # Get k line data

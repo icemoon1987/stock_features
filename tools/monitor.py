@@ -22,6 +22,8 @@
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
+sys.path.append(".")
+sys.path.append("..")
 import os
 import time
 import json
@@ -50,7 +52,7 @@ def main():
     data_if = TushareInterface()
 
     while True:
-        os.system("clear")
+        #os.system("clear")
         try:
 
             for monitor in conf_obj["monitors"]:

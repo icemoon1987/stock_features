@@ -128,7 +128,7 @@ def main():
     merge_result_path = "%s/merge_result" % (conf_obj["result_dir"])
     merge_result = pd.read_csv( "%s/%s" % (merge_result_path, date.strftime("%Y%m%d")) )
 
-    merge_result = merge_result.ix[:10, ["model_signal"]]
+    merge_result = merge_result.ix[:10, ["day_pulse_signal", "week_pulse_signal"]]
 
     print merge_result
 

@@ -22,6 +22,7 @@ import os
 import time
 import shutil
 import argparse
+import logging
 import pandas as pd
 from datetime import datetime, timedelta
 import tensorflow as tf
@@ -47,11 +48,11 @@ class MySessionHook(SessionRunHook):
         return
 
     def before_run(self, run_context):
-        #print('Before calling session.run().')
+        print('Before calling session.run().')
         return
 
     def after_run(self, run_context, run_values):
-        #print('Done running one step. The value of my tensor: %s', run_values.results)
+        print('Done running one step. The value of my tensor: %s, %s' %( run_context,  run_values.results))
         return
 
     def end(self, session):
@@ -67,6 +68,7 @@ def parse_args():
     """
 
     parser = argparse.ArgumentParser(description="train the model")
+    parser.add_argument("--log", help="log directory", type=str, default="./log")
     parser.add_argument("--date", help="target date of the data", type=str, default=datetime.now().strftime("%Y%m%d"))
     parser.add_argument("--data_dir", help="data directory", type=str, default="./result/ml_data")
     parser.add_argument("--model_dir", help="model directory", type=str, default="./result/model")
@@ -76,6 +78,7 @@ def parse_args():
     parser.add_argument("--batch_size", help="batch size for training", type=int, default=10)
     parser.add_argument("--steps", help="step number for training", type=int, default=None)
     parser.add_argument("--epoch", help="epoch number for training", type=int, default=1)
+    parser.add_argument("--debug", help="debug mode", action="store_true")
 
     return parser.parse_args()
 
@@ -89,6 +92,16 @@ def load_data(data_path, label_col):
 
 
 def get_dataset(data, labels, columns, batch_size, epoch):
+
+    dataset = tf.data.Dataset.from_tensor_slices(({k: data[k].values for k in columns}, labels))
+    dataset = dataset.repeat(epoch).batch(batch_size)
+
+    # Return the dataset.
+    return dataset
+
+
+def get_dataset_by_csv(file_path, label, columns, batch_size, epoch):
+    train_data = tf.data.experimental.make_csv_dataset(train_data_path, batch_size=100, label_name="will_profit", select_columns=list(cols).extend(["will_profit"]))
 
     dataset = tf.data.Dataset.from_tensor_slices(({k: data[k].values for k in columns}, labels))
     dataset = dataset.repeat(epoch).batch(batch_size)
@@ -117,11 +130,12 @@ def get_feature_columns():
     features["day_macd_signal"] = tf.feature_column.numeric_column("day_macd_signal")
     features["day_macd_bar"] = tf.feature_column.numeric_column("day_macd_bar")
     features["day_pulse"] = tf.feature_column.categorical_column_with_vocabulary_list(key='day_pulse', vocabulary_list = ["r", "g", "b"])
-    features["day_pulse_signal"] = tf.feature_column.categorical_column_with_identity(key='day_pulse_signal', num_buckets=9)
+    features["day_pulse_signal"] = tf.feature_column.categorical_column_with_vocabulary_list(key='day_pulse_signal', dtype = tf.int64, vocabulary_list = [-4, -3, -2, -1, 0, 1, 2, 3, 4])
+    #features["day_pulse_signal"] = tf.feature_column.categorical_column_with_identity(key='day_pulse_signal', num_buckets=9)
     features["day_force_raw"] = tf.feature_column.numeric_column("day_force_raw")
     features["day_force_ema"] = tf.feature_column.numeric_column("day_force_ema")
-    features["day_force_signal"] = tf.feature_column.categorical_column_with_identity(key='day_force_signal', num_buckets=3)
-    features["deviation_signal"] = tf.feature_column.numeric_column("deviation_signal")
+    features["day_force_signal"] = tf.feature_column.categorical_column_with_vocabulary_list(key='day_force_signal', vocabulary_list = [-1, 0, 1])
+    features["deviation_signal"] = tf.feature_column.categorical_column_with_identity(key="deviation_signal", num_buckets = 31, default_value = 30)
     features["day_last_min"] = tf.feature_column.numeric_column("day_last_min")
     features["day_last_min_bar"] = tf.feature_column.numeric_column("day_last_min_bar")
     features["day_tr"] = tf.feature_column.numeric_column("day_tr")
@@ -134,7 +148,7 @@ def get_feature_columns():
     features["target_day_open"] = tf.feature_column.numeric_column("target_day_open")
     features["target_day_close"] = tf.feature_column.numeric_column("target_day_close")
     features["target_day_rise_rate"] = tf.feature_column.numeric_column("target_day_rise_rate")
-    features["day_win_signal"] = tf.feature_column.categorical_column_with_identity(key='day_win_signal', num_buckets=2)
+    features["day_win_signal"] = tf.feature_column.categorical_column_with_vocabulary_list(key='day_win_signal', vocabulary_list = [0, 1])
     features["day_win_percentage"] = tf.feature_column.numeric_column("day_win_percentage")
     #features["will_profit"] = 
     features["day_low_ema_gap"] = tf.feature_column.numeric_column("day_low_ema_gap")
@@ -158,8 +172,8 @@ def get_feature_columns():
     features["week_macd"] = tf.feature_column.numeric_column("week_macd")
     features["week_macd_signal"] = tf.feature_column.numeric_column("week_macd_signal")
     features["week_macd_bar"] = tf.feature_column.numeric_column("week_macd_bar")
-    features["week_pulse"] = tf.feature_column.categorical_column_with_identity(key='week_pulse', num_buckets=3)
-    features["week_pulse_signal"] = tf.feature_column.categorical_column_with_identity(key='week_pulse_signal', num_buckets=9)
+    features["week_pulse"] = tf.feature_column.categorical_column_with_vocabulary_list(key='week_pulse', vocabulary_list = ["r", "g", "b"])
+    features["week_pulse_signal"] = tf.feature_column.categorical_column_with_vocabulary_list(key='week_pulse_signal', dtype = tf.int64, vocabulary_list = [-4, -3, -2, -1, 0, 1, 2, 3, 4])
     features["week_tr"] = tf.feature_column.numeric_column("week_tr")
     features["week_atr"] = tf.feature_column.numeric_column("week_atr")
     features["week_atr1_high"] = tf.feature_column.numeric_column("week_atr1_high")
@@ -169,7 +183,7 @@ def get_feature_columns():
     features["week_close_ema_short_predict"] = tf.feature_column.numeric_column("week_close_ema_short_predict")
     features["week_close_ema_long_predict"] = tf.feature_column.numeric_column("week_close_ema_long_predict")
     features["target_point"] = tf.feature_column.numeric_column("target_point")
-    features["model_signal"] = tf.feature_column.categorical_column_with_identity(key='model_signal', num_buckets=10)
+    features["model_signal"] = tf.feature_column.categorical_column_with_vocabulary_list(key='model_signal', vocabulary_list = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5])
     features["profit"] = tf.feature_column.numeric_column("profit")
     features["risk"] = tf.feature_column.numeric_column("risk")
     features["profit_risk_ratio"] = tf.feature_column.numeric_column("profit_risk_ratio")
@@ -177,13 +191,13 @@ def get_feature_columns():
     #features["stock_id"] = 
 
     wide_col_names = []
-    wide_col_names.append("day_pulse")
-    wide_col_names.append("day_pulse_signal")
-    wide_col_names.append("week_pulse")
-    wide_col_names.append("week_pulse_signal")
-    wide_col_names.append("day_force_signal")
-    wide_col_names.append("day_win_signal")
-    wide_col_names.append("model_signal")
+    #wide_col_names.append("day_pulse")
+    #wide_col_names.append("day_pulse_signal")
+    #wide_col_names.append("week_pulse")
+    #wide_col_names.append("week_pulse_signal")
+    #wide_col_names.append("day_force_signal")
+    #wide_col_names.append("day_win_signal")
+    #wide_col_names.append("deviation_signal")
     
     wide_feature_cols = []
     for col_name in wide_col_names:
@@ -197,18 +211,18 @@ def get_feature_columns():
     #deep_col_names.append("day_force_signal")
     #deep_col_names.append("day_win_signal")
     #deep_col_names.append("model_signal")
-    deep_col_names.append("deviation_signal")
-    deep_col_names.append("day_open")
-    deep_col_names.append("day_close")
-    deep_col_names.append("day_high")
+    #deep_col_names.append("deviation_signal")
+    #deep_col_names.append("day_open")
+    #deep_col_names.append("day_close")
+    #deep_col_names.append("day_high")
     deep_col_names.append("day_low")
-    deep_col_names.append("day_volume")
-    deep_col_names.append("day_win_percentage")
-    deep_col_names.append("week_open")
-    deep_col_names.append("week_close")
-    deep_col_names.append("week_high")
-    deep_col_names.append("week_low")
-    deep_col_names.append("week_volume")
+    #deep_col_names.append("day_volume")
+    #deep_col_names.append("day_win_percentage")
+    #deep_col_names.append("week_open")
+    #deep_col_names.append("week_close")
+    #deep_col_names.append("week_high")
+    #deep_col_names.append("week_low")
+    #deep_col_names.append("week_volume")
 
     deep_feature_cols = []
     for col_name in deep_col_names:
@@ -216,7 +230,13 @@ def get_feature_columns():
 
     #deep_feature_cols.append(tf.feature_column.indicator_column(tf.feature_column.categorical_column_with_identity(key='day_pulse', num_buckets=3)))
 
-    deep_feature_cols.append(tf.feature_column.indicator_column(features["day_pulse"]))
+    #deep_feature_cols.append(tf.feature_column.indicator_column(features["day_pulse"]))
+    #deep_feature_cols.append(tf.feature_column.indicator_column(features["day_pulse_signal"]))
+    #deep_feature_cols.append(tf.feature_column.indicator_column(features["week_pulse"]))
+    #deep_feature_cols.append(tf.feature_column.indicator_column(features["week_pulse_signal"]))
+    #deep_feature_cols.append(tf.feature_column.indicator_column(features["day_force_signal"]))
+    #deep_feature_cols.append(tf.feature_column.indicator_column(features["day_win_signal"]))
+    #deep_feature_cols.append(tf.feature_column.indicator_column(features["model_signal"]))
 
     cols = set()
 
@@ -250,15 +270,26 @@ def main():
     else:
         test_data_path = "%s/%s/%s/%s" % (args.data_dir, args.date, args.stock, "test.csv")
 
-    train_x, train_y = load_data(train_data_path, "will_profit")
-    test_x, test_y = load_data(test_data_path, "will_profit")
+    if args.debug:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
 
+    logging.getLogger("tensorflow").setLevel(logging.WARNING)
+    logging.basicConfig(level=log_level, filename="%s/%s.%s" % (args.log, "log", datetime.now().strftime("%Y%m%d")), filemode='a', format='%(asctime)s [%(levelname)s] [%(filename)s] [%(funcName)s] [%(lineno)d] %(message)s')
+
+    logging.info("Get feature columns...")
     cols, wide_feature_cols, deep_feature_cols = get_feature_columns()
 
+    logging.info("cols = %s" % (cols))
+    logging.info("wide_feature_cols = %s" % (wide_feature_cols))
+    logging.info("deep_feature_cols = %s" % (deep_feature_cols))
+
+    logging.info("Config estimator...")
     estimator = DNNLinearCombinedClassifier(
-        linear_feature_columns = None,
+        linear_feature_columns = wide_feature_cols,
         dnn_feature_columns = deep_feature_cols,
-        dnn_hidden_units = [10, 10, 10],
+        dnn_hidden_units = [10, 10],
         config = RunConfig(
             model_dir = args.model_dir,
             save_summary_steps = 100,
@@ -266,24 +297,55 @@ def main():
             )
     )
 
-    print "training..."
+    logging.info("Training...")
+    select_columns = list(cols)
+    select_columns.extend(["will_profit"])
+
     estimator.train(
-        input_fn = lambda: get_dataset(train_x, train_y, cols, args.batch_size, args.epoch),
-        steps = args.steps,
-        hooks = [MySessionHook()]
+        input_fn = 
+            lambda: tf.data.experimental.make_csv_dataset(
+                train_data_path, 
+                batch_size = args.batch_size,
+                num_epochs = args.epoch,
+                label_name = "will_profit", 
+                select_columns = select_columns,
+                #hooks = [MySessionHook()]
+                ),
+        steps = args.steps
+    )
+    logging.info("Training finish.")
+
+    logging.info("Testing on train set...")
+    metrics = estimator.evaluate(
+        input_fn = 
+            lambda: tf.data.experimental.make_csv_dataset(
+                train_data_path, 
+                batch_size = args.batch_size,
+                num_epochs = 1,
+                label_name = "will_profit", 
+                select_columns = select_columns,
+                #hooks = [MySessionHook()]
+                ),
+        steps = args.steps
     )
 
-    print "testing on training set..."
-    metrics = estimator.evaluate(lambda: get_dataset(train_x, train_y, cols, args.batch_size, 1), steps = args.steps)
+    logging.info("Testing on train set result: %s" % (metrics))
 
-    print "test_on_training_set_metrics:"
-    print metrics
+    logging.info("Testing on test set...")
+    metrics = estimator.evaluate(
+        input_fn = 
+            lambda: tf.data.experimental.make_csv_dataset(
+                test_data_path, 
+                batch_size = args.batch_size,
+                num_epochs = 1,
+                label_name = "will_profit", 
+                select_columns = select_columns,
+                #hooks = [MySessionHook()]
+                ),
+        steps = args.steps
+    )
 
-    print "testing..."
-    metrics = estimator.evaluate(lambda: get_dataset(test_x, test_y, cols, args.batch_size, 1), steps = args.steps)
-
-    print "test__metrics:"
-    print metrics
+    logging.info("Testing on test set result: %s" % (metrics))
 
     return
 
