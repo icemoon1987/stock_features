@@ -57,16 +57,17 @@ def main():
 
             for monitor in conf_obj["monitors"]:
                 result = data_if.get_realtime_quotes(monitor["code"])
+                ratio = (float(result["price"]) - float(result["pre_close"])) / float(result["open"])
                 price = float(result["price"][0])
 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
                 if price >= monitor["upper_limit"] * 0.99:
-                    print "%s   WARNING: %s  %f  upper_limit %f" % (now, monitor["code"], price, monitor["upper_limit"])
+                    print "%s   WARNING: %s  %f %f upper_limit %f" % (now, monitor["code"], price, ratio, monitor["upper_limit"])
                 elif price <= monitor["lower_limit"] * 1.01:
-                    print "%s   WARNING: %s  %f  lower_limit %f" % (now, monitor["code"], price, monitor["lower_limit"])
+                    print "%s   WARNING: %s  %f %f lower_limit %f" % (now, monitor["code"], price, ratio, monitor["lower_limit"])
                 else:
-                    print "%s   DEBUG: %s  %f" % (now, monitor["code"], price)
+                    print "%s   DEBUG: %s  %f %f" % (now, monitor["code"], price, ratio)
 
         except Exception, ex:
             print str(ex)
